@@ -15,7 +15,9 @@ The first vertical slice can:
 - parse and validate a public GitHub issue URL;
 - retrieve public repository and issue metadata;
 - retrieve the repository README and recursive file tree;
-- rank likely relevant paths using terms from the issue;
+- rank likely relevant paths using weighted issue terms and explain each score;
+- include recent commits for the strongest candidate paths;
+- discover potentially related issues for human review;
 - export a Markdown context pack with links back to its evidence; and
 - run without an account or API key for low-volume public GitHub usage.
 
@@ -52,6 +54,13 @@ The substantial planned work is tracked in [ROADMAP.md](ROADMAP.md). The next
 milestones cover local indexing, commit and pull-request evidence, review and
 approval workflows, GitHub webhook synchronisation, exports, an MCP interface,
 and production hardening.
+
+## Development status
+
+ContextBridge is an early working prototype. Retrieval is intentionally
+conservative and its candidate paths and related issues require human review.
+The fixture-backed test suite and CI workflow protect the current vertical
+slice while the indexing approach evolves.
 
 ## Licence
 

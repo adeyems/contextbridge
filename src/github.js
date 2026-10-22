@@ -59,5 +59,16 @@ export class GitHubClient {
       `/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/git/trees/${encodeURIComponent(treeSha)}?recursive=1`,
     );
   }
+
+  getCommitsForPath(owner, repo, path, limit = 3) {
+    return this.request(
+      `/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/commits?path=${encodeURIComponent(path)}&per_page=${limit}`,
+    );
+  }
+
+  searchRelatedIssues(owner, repo, terms, limit = 5) {
+    const query = [`repo:${owner}/${repo}`, "is:issue", ...terms.slice(0, 4)].join(" ");
+    return this.request(`/search/issues?q=${encodeURIComponent(query)}&per_page=${limit}`);
+  }
 }
 

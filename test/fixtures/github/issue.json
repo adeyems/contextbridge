@@ -1,0 +1,6 @@
+{
+  "number": 42,
+  "title": "Retry webhook delivery",
+  "html_url": "https://github.com/acme/widget/issues/42",
+  "body": "Handle transient delivery failures without losing events."
+}

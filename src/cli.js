@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 
 import { writeFile } from "node:fs/promises";
-import { buildContextPack, extractTerms, rankPaths } from "./context-pack.js";
+import { pathToFileURL } from "node:url";
+import { buildContextPack, buildWeightedTerms, rankPaths } from "./context-pack.js";
 import { GitHubClient, parseIssueUrl } from "./github.js";
 
 function parseArguments(argv) {
@@ -41,13 +42,27 @@ export async function run(argv, client = new GitHubClient()) {
     client.getReadme(owner, repo).catch(() => "_README could not be retrieved._"),
     client.getTree(owner, repo, repository.default_branch),
   ]);
-  const terms = extractTerms(`${issue.title}\n${issue.body ?? ""}`);
+  const terms = buildWeightedTerms(issue.title, issue.body ?? "");
   const paths = tree.tree.filter((item) => item.type === "blob").map((item) => item.path);
+  const rankedPaths = rankPaths(paths, terms);
+  const historyCandidates = rankedPaths.slice(0, 5);
+  const historyResults = await Promise.all(historyCandidates.map(async ({ path }) => {
+    const commits = await client.getCommitsForPath(owner, repo, path).catch(() => []);
+    return [path, commits];
+  }));
+  const relatedResponse = await client
+    .searchRelatedIssues(owner, repo, terms.map(({ term }) => term))
+    .catch(() => ({ items: [] }));
+  const relatedIssues = relatedResponse.items
+    .filter((item) => item.number !== issue.number)
+    .slice(0, 5);
   const markdown = buildContextPack({
     repository,
     issue,
     readme,
-    rankedPaths: rankPaths(paths, terms),
+    rankedPaths,
+    commitsByPath: Object.fromEntries(historyResults),
+    relatedIssues,
     generatedAt: new Date().toISOString(),
   });
 
@@ -59,8 +74,10 @@ export async function run(argv, client = new GitHubClient()) {
   }
 }
 
-run(process.argv.slice(2)).catch((error) => {
-  console.error(`ContextBridge: ${error.message}`);
-  process.exitCode = 1;
-});
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  run(process.argv.slice(2)).catch((error) => {
+    console.error(`ContextBridge: ${error.message}`);
+    process.exitCode = 1;
+  });
+}
 

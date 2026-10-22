@@ -6,10 +6,12 @@ revised as the product is used.
 
 ## Milestone 1: stronger retrieval (12-18 hours)
 
+- Completed foundation: weighted filename ranking with human-readable reasons.
+- Completed foundation: recent path commits and related-issue candidates.
 - Parse source symbols with Tree-sitter.
 - Index Markdown headings, source symbols and test names locally.
 - Add BM25 ranking and explain every relevance score.
-- Include relevant commits and pull requests in context packs.
+- Add pull-request evidence and improve commit relevance beyond recency.
 - Detect renamed and deleted files when following historical evidence.
 
 ## Milestone 2: review workflow (10-16 hours)
