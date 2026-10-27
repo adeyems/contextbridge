@@ -20,7 +20,10 @@ repository's claims easy to verify.
 
 ## Data and secrets
 
-- Use public GitHub data and made-up fixtures only.
+- Use made-up fixtures for programme development pending scope clarification.
+- Live public GitHub data may contain other people's personal information;
+  public availability does not establish programme eligibility. The tool has
+  no automatic personal-data filtering and exported packs retain excerpts.
 - Never commit tokens, credentials, private keys, `.env` files or real customer
   data.
 - Revoke and remove any credential accidentally committed before publication.
@@ -32,5 +35,7 @@ repository's claims easy to verify.
   serving or machine-learning infrastructure.
 - The tool may export context for a developer or coding assistant, but it must
   remain useful without an AI model.
+- Planned MCP and instruction-file exports must be disclosed when asking the
+  programme to assess eligibility; these safeguards are not programme approval.
 - Do not add offensive security or vulnerability-exploitation capabilities.
 

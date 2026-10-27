@@ -8,6 +8,11 @@ import {
 } from "../src/context-pack.js";
 import { parseIssueUrl } from "../src/github.js";
 
+test("source and test bonuses do not create matches", () => {
+  assert.deepEqual(rankPaths(["src/unrelated.js", "tests/other.txt"], ["payment"]), []);
+  assert.deepEqual(rankPaths(["src/payment.js"], []), []);
+});
+
 test("parses a canonical public GitHub issue URL", () => {
   assert.deepEqual(parseIssueUrl("https://github.com/acme/widget/issues/42"), {
     owner: "acme",

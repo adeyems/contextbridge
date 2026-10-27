@@ -44,9 +44,20 @@ fine-grained, read-only token through `GITHUB_TOKEN`; never commit the token.
 
 ## Privacy and scope
 
-The current version accepts public repositories only. It does not persist
-repository contents, transmit them to an AI provider, or process customer or
-regulated personal data. See [Project safeguards](docs/project-safeguards.md).
+The CLI checks repository metadata before fetching issues or content and rejects
+repositories not explicitly marked public. This is a check at retrieval time,
+not a guarantee against later visibility changes. It does not send data to an AI
+provider. It writes retrieved excerpts to stdout or the requested Markdown file.
+Public GitHub responses and free text can contain personal information; the tool
+does not detect or remove it. Use synthetic fixtures for programme development
+until the organisers clarify whether the live-data scope is eligible. See
+[Project safeguards](docs/project-safeguards.md).
+
+Candidate paths require at least one matching issue term; source/test bonuses
+only affect the order of matching paths. Optional README/history/search failures
+and truncated trees or searches appear in a Retrieval status section. Such packs
+can still be generated successfully, but need review for missing evidence.
+Repository, issue and file-tree request failures stop generation.
 
 ## Roadmap
 

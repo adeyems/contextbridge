@@ -52,7 +52,7 @@ export function rankPaths(paths, terms, limit = 12) {
         score: matchedTerms.reduce((sum, { weight }) => sum + weight, 0) + testBonus + sourceBonus,
       };
     })
-    .filter((candidate) => candidate.score > 0)
+    .filter((candidate) => candidate.matchedTerms.length > 0 && candidate.score > 0)
     .sort((a, b) => b.score - a.score || a.path.localeCompare(b.path))
     .slice(0, limit);
 }
@@ -70,6 +70,7 @@ export function buildContextPack({
   rankedPaths,
   commitsByPath = {},
   relatedIssues = [],
+  warnings = [],
   generatedAt,
 }) {
   const pathLines = rankedPaths.length
@@ -97,6 +98,7 @@ export function buildContextPack({
 
   return `# Context pack: ${issue.title}\n\n` +
     `Generated: ${generatedAt}\n\n` +
+    `## Retrieval status\n\n${warnings.length ? warnings.map((warning) => `- ${warning}`).join("\n") : "No retrieval failures or truncation were reported. This does not guarantee complete evidence."}\n\n` +
     `## Task evidence\n\n` +
     `- Issue: [#${issue.number} ${issue.title}](${issue.html_url})\n` +
     `- Repository: [${repository.full_name}](${repository.html_url})\n` +

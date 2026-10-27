@@ -44,7 +44,8 @@ revised as the product is used.
 - Add load, failure-recovery and migration tests.
 - Publish contributor and deployment documentation.
 
-The unimplemented roadmap represents substantially more than 20 hours of
-planned software-engineering work across features, tests, refactors,
-documentation and deployment.
+These historical ranges need reassessment against the owner's intended scope.
+Completed foundations and overlapping test/operations work must not be counted
+twice. Live GitHub data handling and planned coding-assistant integrations need
+programme eligibility review; these estimates do not certify a 20-hour minimum.
 

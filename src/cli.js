@@ -30,29 +30,42 @@ export async function run(argv, client = new GitHubClient()) {
   }
 
   const { owner, repo, issueNumber } = parseIssueUrl(args.issueUrl);
-  const [repository, issue] = await Promise.all([
-    client.getRepository(owner, repo),
-    client.getIssue(owner, repo, issueNumber),
-  ]);
+  const repository = await client.getRepository(owner, repo);
+  if (repository.private !== false || (repository.visibility && repository.visibility !== "public")) {
+    throw new Error("Repository must be explicitly public; no issue or content was fetched");
+  }
+  const issue = await client.getIssue(owner, repo, issueNumber);
   if (issue.pull_request) {
     throw new Error("The supplied URL points to a pull request, not an issue");
   }
 
+  const warnings = [];
   const [readme, tree] = await Promise.all([
-    client.getReadme(owner, repo).catch(() => "_README could not be retrieved._"),
+    client.getReadme(owner, repo).catch(() => {
+      warnings.push("README retrieval failed; repository overview is unavailable.");
+      return "_README could not be retrieved._";
+    }),
     client.getTree(owner, repo, repository.default_branch),
   ]);
+  if (tree.truncated) warnings.push("GitHub returned a truncated file tree; candidate-path coverage is incomplete.");
   const terms = buildWeightedTerms(issue.title, issue.body ?? "");
   const paths = tree.tree.filter((item) => item.type === "blob").map((item) => item.path);
   const rankedPaths = rankPaths(paths, terms);
   const historyCandidates = rankedPaths.slice(0, 5);
   const historyResults = await Promise.all(historyCandidates.map(async ({ path }) => {
-    const commits = await client.getCommitsForPath(owner, repo, path).catch(() => []);
+    const commits = await client.getCommitsForPath(owner, repo, path).catch(() => {
+      warnings.push(`Commit history retrieval failed for ${JSON.stringify(path)}; an empty result does not mean no history exists.`);
+      return [];
+    });
     return [path, commits];
   }));
   const relatedResponse = await client
     .searchRelatedIssues(owner, repo, terms.map(({ term }) => term))
-    .catch(() => ({ items: [] }));
+    .catch(() => {
+      warnings.push("Related-issue retrieval failed; an empty result does not mean no related issues exist.");
+      return { items: [] };
+    });
+  if (relatedResponse.incomplete_results) warnings.push("GitHub returned incomplete related-issue search results.");
   const relatedIssues = relatedResponse.items
     .filter((item) => item.number !== issue.number)
     .slice(0, 5);
@@ -63,6 +76,7 @@ export async function run(argv, client = new GitHubClient()) {
     rankedPaths,
     commitsByPath: Object.fromEntries(historyResults),
     relatedIssues,
+    warnings: warnings.sort(),
     generatedAt: new Date().toISOString(),
   });
 
