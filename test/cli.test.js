@@ -96,3 +96,27 @@ test("generates a deterministic context pack from GitHub fixtures", async () => 
     await rm(directory, { recursive: true, force: true });
   }
 });
+
+test('JSON export preserves provenance, warnings and Markdown', async () => {
+ const directory = await mkdtemp(join(tmpdir(), 'contextbridge-json-'));
+ const output = join(directory,'pack.json');
+ const client = {
+  async getRepository(){return repository;}, async getIssue(){return issue;},
+  async getReadme(){return 'Synthetic';}, async getTree(){return {...tree,truncated:true};},
+  async getCommitsForPath(){return [];}, async searchRelatedIssues(){return {items:[]};},
+ };
+ try {
+  await run(['https://github.com/acme/widget/issues/42','--format','json','--output',output],client);
+  const pack=JSON.parse(await readFile(output,'utf8'));
+  assert.deepEqual(Object.keys(pack).sort(),['generatedAt','markdown','source','version','warnings']);
+  assert.equal(pack.version,1);
+  assert.equal(pack.source.issueUrl,issue.html_url);
+  assert.equal(pack.source.repositoryUrl,repository.html_url);
+  assert.equal(pack.source.defaultBranch,repository.default_branch);
+  assert.ok(Number.isFinite(Date.parse(pack.generatedAt)));
+  assert.match(pack.markdown,/Context pack/);
+  assert.ok(pack.warnings.some(w=>w.includes('truncated')));
+  await assert.rejects(run(['https://github.com/acme/widget/issues/42','--format','xml'],{}),/Format/);
+  await assert.rejects(run(['https://github.com/acme/widget/issues/42','--format','json','--format','json'],{}),/Duplicate/);
+ } finally {await rm(directory,{recursive:true,force:true});}
+});

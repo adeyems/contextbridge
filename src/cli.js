@@ -14,18 +14,19 @@ function parseArguments(argv) {
   const args = { issueUrl };
   for (let i = 0; i < rest.length; i += 2) {
     const option = rest[i];
-    if (!["--output", "--review-notes"].includes(option) || !rest[i + 1] || rest[i + 1].startsWith("--")) {
-      throw new Error("Expected --output PATH or --review-notes PATH");
+    if (!["--output", "--review-notes", "--format"].includes(option) || !rest[i + 1] || rest[i + 1].startsWith("--")) {
+      throw new Error("Expected --output PATH, --review-notes PATH or --format markdown|json");
     }
-    const key = option === "--output" ? "output" : "reviewNotes";
+    const key = option === "--output" ? "output" : option === "--format" ? "format" : "reviewNotes";
     if (args[key]) throw new Error(`Duplicate option ${option}`);
     args[key] = rest[i + 1];
   }
+  if (args.format && !["markdown", "json"].includes(args.format)) throw new Error("Format must be markdown or json");
   return args;
 }
 
 function printHelp() {
-  console.log("Usage: contextbridge <github-issue-url> [--output context-pack.md] [--review-notes notes.json]");
+  console.log("Usage: contextbridge <github-issue-url> [--output context-pack.md] [--review-notes notes.json] [--format markdown|json]");
 }
 
 export async function loadReviewNotes(path) {
@@ -100,6 +101,7 @@ export async function run(argv, client = new GitHubClient()) {
   const relatedIssues = relatedResponse.items
     .filter((item) => item.number !== issue.number)
     .slice(0, 5);
+  const generatedAt = new Date().toISOString();
   const markdown = buildContextPack({
     repository,
     issue,
@@ -109,14 +111,21 @@ export async function run(argv, client = new GitHubClient()) {
     relatedIssues,
     warnings: warnings.sort(),
     reviewNotes,
-    generatedAt: new Date().toISOString(),
+    generatedAt,
   });
 
+  const output = args.format === "json" ? JSON.stringify({
+    version: 1,
+    generatedAt,
+    source: { repositoryUrl: repository.html_url, issueUrl: issue.html_url, defaultBranch: repository.default_branch },
+    warnings: [...warnings].sort(),
+    markdown,
+  }, null, 2) + "\n" : markdown;
   if (args.output) {
-    await writeFile(args.output, markdown, "utf8");
+    await writeFile(args.output, output, "utf8");
     console.log(`Wrote ${args.output}`);
   } else {
-    process.stdout.write(markdown);
+    process.stdout.write(output);
   }
 }
 

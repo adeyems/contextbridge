@@ -81,3 +81,7 @@ slice while the indexing approach evolves.
 ## Author-supplied review notes
 
 Pass `--review-notes notes.json` alongside the issue URL to include explicit unanswered questions and risks. The file requires exactly `{"version":1,"questions":["Which tests apply?"],"risks":["Behaviour is not yet verified."]}`. Each section allows up to 20 nonempty single-line strings of 500 characters each; the UTF-8 file is limited to 16 KiB. Notes are validated before GitHub retrieval, labelled author supplied, and Markdown/HTML markup is escaped. Missing notes are explicitly unknown, not evidence that no risks exist. This does not infer risks, approve evidence or send data to a model; use synthetic notes. Duplicate JSON keys currently follow JSON.parse last-value semantics.
+
+## Versioned JSON export
+
+Use `--format json` to export a version-1 envelope containing generatedAt, source provenance, retrieval warnings and the rendered Markdown. Default output remains Markdown; both formats support --output. The contract is documented in schemas/context-pack-v1.schema.json. This is a transport envelope, not approved evidence or independently typed evidence records. The Markdown can contain retrieved public text and author notes; JSON output has the same data-handling scope as Markdown. No additional retrieval is performed.

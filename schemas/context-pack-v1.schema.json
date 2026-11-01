@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ContextBridge context pack envelope v1",
+  "type": "object", "additionalProperties": false,
+  "required": ["version", "generatedAt", "source", "warnings", "markdown"],
+  "properties": {
+    "version": {"const": 1},
+    "generatedAt": {"type": "string", "format": "date-time"},
+    "source": {
+      "type": "object", "additionalProperties": false,
+      "required": ["repositoryUrl", "issueUrl", "defaultBranch"],
+      "properties": {"repositoryUrl": {"type": "string"}, "issueUrl": {"type": "string"}, "defaultBranch": {"type": "string"}}
+    },
+    "warnings": {"type": "array", "items": {"type": "string"}},
+    "markdown": {"type": "string"}
+  }
+}
