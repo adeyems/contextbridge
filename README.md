@@ -77,3 +77,7 @@ slice while the indexing approach evolves.
 
 [MIT](LICENSE)
 
+
+## Author-supplied review notes
+
+Pass `--review-notes notes.json` alongside the issue URL to include explicit unanswered questions and risks. The file requires exactly `{"version":1,"questions":["Which tests apply?"],"risks":["Behaviour is not yet verified."]}`. Each section allows up to 20 nonempty single-line strings of 500 characters each; the UTF-8 file is limited to 16 KiB. Notes are validated before GitHub retrieval, labelled author supplied, and Markdown/HTML markup is escaped. Missing notes are explicitly unknown, not evidence that no risks exist. This does not infer risks, approve evidence or send data to a model; use synthetic notes. Duplicate JSON keys currently follow JSON.parse last-value semantics.

@@ -71,6 +71,7 @@ export function buildContextPack({
   commitsByPath = {},
   relatedIssues = [],
   warnings = [],
+  reviewNotes,
   generatedAt,
 }) {
   const pathLines = rankedPaths.length
@@ -96,6 +97,8 @@ export function buildContextPack({
     ? relatedIssues.map((item) => `- [#${item.number} ${item.title}](${item.html_url})`).join("\n")
     : "_No related issues were retrieved._";
 
+  const reviewSection = (title, values) => `## ${title} (author supplied)\n\n` +
+    (values?.length ? values.map(value => `- ${value.replace(/[&<>]/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" })[char]).replace(/([\\`*_[\]{}()#!|])/g, "\\$1")}`).join("\n") : "_No notes supplied; this is not a claim that none exist._") + "\n\n";
   return `# Context pack: ${issue.title}\n\n` +
     `Generated: ${generatedAt}\n\n` +
     `## Retrieval status\n\n${warnings.length ? warnings.map((warning) => `- ${warning}`).join("\n") : "No retrieval failures or truncation were reported. This does not guarantee complete evidence."}\n\n` +
@@ -109,6 +112,8 @@ export function buildContextPack({
     `## Recent path history\n\n${historySection}\n\n` +
     `## Related issues\n\n${relatedSection}\n\n` +
     `## Repository overview\n\n${clip(readme, 5000)}\n\n` +
+    reviewSection("Unanswered questions", reviewNotes?.questions) +
+    reviewSection("Risks", reviewNotes?.risks) +
     `## Review checklist\n\n` +
     `- [ ] Confirm the task objective and acceptance criteria.\n` +
     `- [ ] Inspect each candidate path before making changes.\n` +

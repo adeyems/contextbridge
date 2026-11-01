@@ -49,3 +49,5 @@ Completed foundations and overlapping test/operations work must not be counted
 twice. Live GitHub data handling and planned coding-assistant integrations need
 programme eligibility review; these estimates do not certify a 20-hour minimum.
 
+
+Completed follow-up: author-supplied review notes. See README for scope and remaining limitations.

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { writeFile } from "node:fs/promises";
+import { open, writeFile } from "node:fs/promises";
 import { pathToFileURL } from "node:url";
 import { buildContextPack, buildWeightedTerms, rankPaths } from "./context-pack.js";
 import { GitHubClient, parseIssueUrl } from "./github.js";
@@ -11,15 +11,45 @@ function parseArguments(argv) {
     return { help: true };
   }
 
-  const outputIndex = rest.indexOf("--output");
-  if (outputIndex !== -1 && !rest[outputIndex + 1]) {
-    throw new Error("--output requires a file path");
+  const args = { issueUrl };
+  for (let i = 0; i < rest.length; i += 2) {
+    const option = rest[i];
+    if (!["--output", "--review-notes"].includes(option) || !rest[i + 1] || rest[i + 1].startsWith("--")) {
+      throw new Error("Expected --output PATH or --review-notes PATH");
+    }
+    const key = option === "--output" ? "output" : "reviewNotes";
+    if (args[key]) throw new Error(`Duplicate option ${option}`);
+    args[key] = rest[i + 1];
   }
-  return { issueUrl, output: outputIndex === -1 ? undefined : rest[outputIndex + 1] };
+  return args;
 }
 
 function printHelp() {
-  console.log("Usage: contextbridge <github-issue-url> [--output context-pack.md]");
+  console.log("Usage: contextbridge <github-issue-url> [--output context-pack.md] [--review-notes notes.json]");
+}
+
+export async function loadReviewNotes(path) {
+  const file = await open(path, "r");
+  try {
+    const buffer = Buffer.alloc(16385);
+    let size = 0;
+    while (size < buffer.length) {
+      const { bytesRead } = await file.read(buffer, size, buffer.length - size, null);
+      if (!bytesRead) break;
+      size += bytesRead;
+    }
+    if (size > 16384) throw new Error("Review notes exceed 16 KiB");
+    const notes = JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(buffer.subarray(0, size)));
+    if (!notes || Array.isArray(notes) || Object.keys(notes).sort().join(",") !== "questions,risks,version" || notes.version !== 1) {
+      throw new Error("Review notes require version 1, questions and risks");
+    }
+    for (const key of ["questions", "risks"]) {
+      if (!Array.isArray(notes[key]) || notes[key].length > 20 || notes[key].some(value => typeof value !== "string" || !value.trim() || value.length > 500 || /[\x00-\x1f\x7f]/.test(value))) {
+        throw new Error("Review notes require at most 20 nonempty single-line strings per section, up to 500 characters each");
+      }
+    }
+    return notes;
+  } finally { await file.close(); }
 }
 
 export async function run(argv, client = new GitHubClient()) {
@@ -29,6 +59,7 @@ export async function run(argv, client = new GitHubClient()) {
     return;
   }
 
+  const reviewNotes = args.reviewNotes ? await loadReviewNotes(args.reviewNotes) : undefined;
   const { owner, repo, issueNumber } = parseIssueUrl(args.issueUrl);
   const repository = await client.getRepository(owner, repo);
   if (repository.private !== false || (repository.visibility && repository.visibility !== "public")) {
@@ -77,6 +108,7 @@ export async function run(argv, client = new GitHubClient()) {
     commitsByPath: Object.fromEntries(historyResults),
     relatedIssues,
     warnings: warnings.sort(),
+    reviewNotes,
     generatedAt: new Date().toISOString(),
   });
 
