@@ -3,6 +3,7 @@
 import { open, writeFile } from "node:fs/promises";
 import { pathToFileURL } from "node:url";
 import { buildContextPack, buildWeightedTerms, rankPaths } from "./context-pack.js";
+import { loadPack, comparePacks } from "./pack-compare.js";
 import { GitHubClient, parseIssueUrl } from "./github.js";
 
 function parseArguments(argv) {
@@ -26,6 +27,7 @@ function parseArguments(argv) {
 }
 
 function printHelp() {
+  console.log("Offline comparison: contextbridge compare BEFORE.json AFTER.json");
   console.log("Usage: contextbridge <github-issue-url> [--output context-pack.md] [--review-notes notes.json] [--format markdown|json]");
 }
 
@@ -54,6 +56,14 @@ export async function loadReviewNotes(path) {
 }
 
 export async function run(argv, client = new GitHubClient()) {
+  if (argv[0] === "compare") {
+    if (argv.length !== 3) throw new Error("Usage: contextbridge compare BEFORE.json AFTER.json");
+    const before = await loadPack(argv[1]);
+    const after = await loadPack(argv[2]);
+    const report = comparePacks(before, after);
+    process.stdout.write(JSON.stringify(report, null, 2) + "\n");
+    return report.match ? 0 : 1;
+  }
   const args = parseArguments(argv);
   if (args.help) {
     printHelp();
@@ -130,7 +140,7 @@ export async function run(argv, client = new GitHubClient()) {
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  run(process.argv.slice(2)).catch((error) => {
+  run(process.argv.slice(2)).then(code => { if (typeof code === "number") process.exitCode = code; }).catch((error) => {
     console.error(`ContextBridge: ${error.message}`);
     process.exitCode = 1;
   });

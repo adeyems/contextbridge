@@ -85,3 +85,7 @@ Pass `--review-notes notes.json` alongside the issue URL to include explicit una
 ## Versioned JSON export
 
 Use `--format json` to export a version-1 envelope containing generatedAt, source provenance, retrieval warnings and the rendered Markdown. Default output remains Markdown; both formats support --output. The contract is documented in schemas/context-pack-v1.schema.json. This is a transport envelope, not approved evidence or independently typed evidence records. The Markdown can contain retrieved public text and author notes; JSON output has the same data-handling scope as Markdown. No additional retrieval is performed.
+
+## Offline pack revision comparison
+
+`contextbridge compare BEFORE.json AFTER.json` validates version-1 JSON exports up to 2 MiB each and compares packs for the same issue/repository without network access. Generation timestamps and their exact generated Markdown lines are ignored; evidence dates are retained. Branch and warning changes are explicit. The report includes normalized content hashes and one changed region after trimming common prefix/suffix lines, bounded to 100 lines per side and 500 characters per line with a truncation flag. It is not a minimal diff. Excerpts remain untrusted text encoded as JSON. Exit 0 means match, 1 means differences or invalid input (errors go to stderr). Duplicate envelope keys follow JSON.parse semantics.

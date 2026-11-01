@@ -53,3 +53,5 @@ programme eligibility review; these estimates do not certify a 20-hour minimum.
 Completed follow-up: author-supplied review notes. See README for scope and remaining limitations.
 
 Completed slice: versioned JSON transport envelope with provenance and documented schema; structured evidence and pack revision comparison remain future work.
+
+Completed scoped milestone: offline pack revision comparison. See README for exact semantics and remaining limitations.

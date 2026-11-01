@@ -9,7 +9,7 @@
   "scripts": {
     "start": "node src/cli.js",
     "test": "node --test",
-    "check": "node --check src/cli.js && node --check src/github.js && node --check src/context-pack.js"
+    "check": "node --check src/cli.js && node --check src/github.js && node --check src/context-pack.js && node --check src/pack-compare.js"
   },
   "engines": {
     "node": ">=20"
