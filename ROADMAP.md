@@ -55,3 +55,5 @@ Completed follow-up: author-supplied review notes. See README for scope and rema
 Completed slice: versioned JSON transport envelope with provenance and documented schema; structured evidence and pack revision comparison remain future work.
 
 Completed scoped milestone: offline pack revision comparison. See README for exact semantics and remaining limitations.
+
+Completed scoped follow-up: synthetic transport workflow regression. See README for acceptance scope and remaining limitations.

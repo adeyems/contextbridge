@@ -89,3 +89,7 @@ Use `--format json` to export a version-1 envelope containing generatedAt, sourc
 ## Offline pack revision comparison
 
 `contextbridge compare BEFORE.json AFTER.json` validates version-1 JSON exports up to 2 MiB each and compares packs for the same issue/repository without network access. Generation timestamps and their exact generated Markdown lines are ignored; evidence dates are retained. Branch and warning changes are explicit. The report includes normalized content hashes and one changed region after trimming common prefix/suffix lines, bounded to 100 lines per side and 500 characters per line with a truncation flag. It is not a minimal diff. Excerpts remain untrusted text encoded as JSON. Exit 0 means match, 1 means differences or invalid input (errors go to stderr). Duplicate envelope keys follow JSON.parse semantics.
+
+## Synthetic transport workflow regression
+
+The test suite now exercises the real GitHub HTTP adapter through a strictly synthetic fetch fixture, pack export and a separate CLI process for offline comparison. It checks endpoint/query encoding, raw README handling, no authorization header, equal-pack comparison, and visible partial-search failure without leaking response details. No live account or GitHub request is used. This supplements unit tests; live service validation, browser accessibility and broader workload measurements remain future work.
