@@ -13,3 +13,8 @@ test('heading limits and stable ties are visible',()=>{
  assert.equal(result.headings[0].line,1);
  assert.equal(rankMarkdownHeadings('x'.repeat(65537),[]).inputClipped,true);
 });
+test('Setext headings retain title line and ignore code, lists and separators',()=>{
+ const markdown='Webhook delivery\n===\n\nRetry\n---\n\n```\nWebhook fake\n---\n```\n\n- webhook list\n---\n\n    webhook code\n---';
+ const result=rankMarkdownHeadings(markdown,buildWeightedTerms('webhook','retry'));
+ assert.deepEqual(result.headings.map(h=>[h.line,h.title,h.level]),[[1,'Webhook delivery',1],[4,'Retry',2]]);
+});

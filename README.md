@@ -96,4 +96,8 @@ The test suite now exercises the real GitHub HTTP adapter through a strictly syn
 
 ## README heading retrieval foundation
 
-Context packs now rank matching README ATX headings using existing title/body term weights, retain source line numbers, and expose matched terms and numeric scores. This uses the already retrieved README and makes no additional network requests. It skips fenced code blocks, scans at most 65536 characters, clips heading titles to 300 characters, and returns at most 12 matches with visible omission counts. This is a deliberately small ATX-heading parser, not complete CommonMark parsing; Setext headings, repository-wide Markdown indexing, source-symbol parsing and BM25 remain future work.
+Context packs now rank matching README ATX headings using existing title/body term weights, retain source line numbers, and expose matched terms and numeric scores. This uses the already retrieved README and makes no additional network requests. It skips fenced code blocks, scans at most 65536 characters, clips heading titles to 300 characters, and returns at most 12 matches with visible omission counts. This is a deliberately small ATX-heading parser, not complete CommonMark parsing; A single-line Setext subset is described below; repository-wide Markdown indexing, source-symbol parsing and BM25 remain future work.
+
+## Setext README heading evidence
+
+README heading retrieval also recognizes a single plain title line followed by an equals or hyphen underline, retaining the title line number and level. Fenced and indented code, list markers and standalone separators are excluded from this subset. This is still not a complete CommonMark parser: multiline Setext titles and nested block constructs are not supported. Existing ranking, clipping and omission limits remain unchanged; no new data source or model integration is added.

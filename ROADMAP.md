@@ -59,3 +59,5 @@ Completed scoped milestone: offline pack revision comparison. See README for exa
 Completed scoped follow-up: synthetic transport workflow regression. See README for acceptance scope and remaining limitations.
 
 Completed scoped follow-up: readme heading retrieval foundation. See README for precise behavior and remaining work.
+
+Completed scoped follow-up: setext readme heading evidence. See README for limitations and remaining work.
