@@ -101,3 +101,7 @@ Context packs now rank matching README ATX headings using existing title/body te
 ## Setext README heading evidence
 
 README heading retrieval also recognizes a single plain title line followed by an equals or hyphen underline, retaining the title line number and level. Fenced and indented code, list markers and standalone separators are excluded from this subset. This is still not a complete CommonMark parser: multiline Setext titles and nested block constructs are not supported. Existing ranking, clipping and omission limits remain unchanged; no new data source or model integration is added.
+
+## Local read-only pack viewer
+
+`contextbridge view PACK.json NEW.html` validates an existing version-1 JSON pack and writes an exclusive self-contained HTML review page. It displays provenance, warnings and literal evidence text, with keyboard-accessible section links. All content is escaped; embedded Markdown/HTML links, images and scripts do not run. There are no network requests or external assets, and CSP blocks resource loading. The existing 2 MiB pack input limit applies. File creation uses mode 0600 where supported; storage failure can leave a partial new file. This is read-only review, not approval/rejection/annotation persistence. Interactive evidence selection remains future work.

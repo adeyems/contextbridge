@@ -3,6 +3,7 @@
 import { open, writeFile } from "node:fs/promises";
 import { pathToFileURL } from "node:url";
 import { buildContextPack, buildWeightedTerms, rankPaths } from "./context-pack.js";
+import { renderPack } from "./pack-view.js";
 import { loadPack, comparePacks } from "./pack-compare.js";
 import { GitHubClient, parseIssueUrl } from "./github.js";
 
@@ -27,6 +28,7 @@ function parseArguments(argv) {
 }
 
 function printHelp() {
+  console.log("Local read-only viewer: contextbridge view PACK.json NEW.html");
   console.log("Offline comparison: contextbridge compare BEFORE.json AFTER.json");
   console.log("Usage: contextbridge <github-issue-url> [--output context-pack.md] [--review-notes notes.json] [--format markdown|json]");
 }
@@ -56,6 +58,13 @@ export async function loadReviewNotes(path) {
 }
 
 export async function run(argv, client = new GitHubClient()) {
+  if (argv[0] === "view") {
+    if (argv.length !== 3) throw new Error("Usage: contextbridge view PACK.json NEW.html");
+    const pack = await loadPack(argv[1]);
+    await writeFile(argv[2], renderPack(pack), {encoding:"utf8",flag:"wx",mode:0o600});
+    console.log(`Wrote ${argv[2]}`);
+    return 0;
+  }
   if (argv[0] === "compare") {
     if (argv.length !== 3) throw new Error("Usage: contextbridge compare BEFORE.json AFTER.json");
     const before = await loadPack(argv[1]);
