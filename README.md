@@ -93,3 +93,7 @@ Use `--format json` to export a version-1 envelope containing generatedAt, sourc
 ## Synthetic transport workflow regression
 
 The test suite now exercises the real GitHub HTTP adapter through a strictly synthetic fetch fixture, pack export and a separate CLI process for offline comparison. It checks endpoint/query encoding, raw README handling, no authorization header, equal-pack comparison, and visible partial-search failure without leaking response details. No live account or GitHub request is used. This supplements unit tests; live service validation, browser accessibility and broader workload measurements remain future work.
+
+## README heading retrieval foundation
+
+Context packs now rank matching README ATX headings using existing title/body term weights, retain source line numbers, and expose matched terms and numeric scores. This uses the already retrieved README and makes no additional network requests. It skips fenced code blocks, scans at most 65536 characters, clips heading titles to 300 characters, and returns at most 12 matches with visible omission counts. This is a deliberately small ATX-heading parser, not complete CommonMark parsing; Setext headings, repository-wide Markdown indexing, source-symbol parsing and BM25 remain future work.

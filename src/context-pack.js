@@ -57,6 +57,30 @@ export function rankPaths(paths, terms, limit = 12) {
     .slice(0, limit);
 }
 
+export function rankMarkdownHeadings(markdown, terms) {
+  const lines = markdown.slice(0, 65536).split("\n");
+  const candidates = [];
+  let fence = null;
+  for (let index = 0; index < lines.length; index++) {
+    const line = lines[index];
+    const marker = /^ {0,3}(`{3,}|~{3,})(.*)$/.exec(line);
+    if (fence) {
+      if (marker && marker[1][0] === fence.char && marker[1].length >= fence.length && !marker[2].trim()) fence = null;
+      continue;
+    }
+    if (marker) { fence = {char:marker[1][0], length:marker[1].length}; continue; }
+    const heading = /^ {0,3}(#{1,6})[ \t]+(.+)$/.exec(line);
+    if (!heading) continue;
+    const title = heading[2].replace(/[ \t]+#+[ \t]*$/, '').trim().slice(0, 300);
+    const words = new Set(extractTerms(title));
+    const matches = terms.filter(({term}) => words.has(term));
+    if (matches.length) candidates.push({line:index+1, level:heading[1].length, title,
+      score:matches.reduce((sum,{weight}) => sum+weight,0), matchedTerms:matches.map(({term})=>term)});
+  }
+  candidates.sort((a,b)=>b.score-a.score || a.line-b.line);
+  return {headings:candidates.slice(0,12), inputClipped:markdown.length>65536, matchesOmitted:Math.max(0,candidates.length-12)};
+}
+
 function clip(value, maxLength) {
   if (!value) return "_Not provided._";
   if (value.length <= maxLength) return value;
@@ -74,6 +98,9 @@ export function buildContextPack({
   reviewNotes,
   generatedAt,
 }) {
+  const headingIndex = rankMarkdownHeadings(readme || '', buildWeightedTerms(issue.title, issue.body || ''));
+  const headingLines = headingIndex.headings.map(item =>
+    `- Line ${item.line}, level ${item.level}, score ${item.score}: ${item.title.replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[c]).replace(/([\\`*_[\]{}()#!|])/g, "\\$1")} (matched: ${item.matchedTerms.join(', ')})`).join('\n') || '_No ATX headings matched._';
   const pathLines = rankedPaths.length
     ? rankedPaths.map(({ path, reasons, matchedTerms }) => {
         const evidenceUrl = `${repository.html_url}/blob/${repository.default_branch}/${path}`;
@@ -111,6 +138,7 @@ export function buildContextPack({
     `## Candidate paths\n\n${pathLines}\n\n` +
     `## Recent path history\n\n${historySection}\n\n` +
     `## Related issues\n\n${relatedSection}\n\n` +
+    `## Matching README headings\n\n${headingLines}\n\nInput clipped: ${headingIndex.inputClipped}; matching headings omitted: ${headingIndex.matchesOmitted}. Line numbers refer to the retrieved README.\n\n` +
     `## Repository overview\n\n${clip(readme, 5000)}\n\n` +
     reviewSection("Unanswered questions", reviewNotes?.questions) +
     reviewSection("Risks", reviewNotes?.risks) +
